@@ -3,154 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Cloud Computing Flashcards</title>
+    <title>Cloud Computing Master Deck</title>
     <style>
         :root {
             --primary: #4285f4;
-            --success: #34a853;
-            --warning: #fbbc05;
+            --secondary: #34a853;
+            --accent: #fbbc05;
             --danger: #ea4335;
-            --dark: #202124;
-            --light: #f8f9fa;
+            --bg: #f1f3f4;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e8eaed;
-            margin: 0;
-            padding: 20px;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
         }
 
-        h1 { color: var(--dark); margin-bottom: 30px; }
+        .deck-info { margin-bottom: 10px; color: #5f6368; font-weight: bold; }
 
-        .deck-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 25px;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        /* Flashcard Core Logic */
-        .flashcard {
-            background-color: transparent;
-            height: 250px;
+        /* Card Container */
+        .card-container {
+            position: relative;
+            width: 350px;
+            height: 450px;
             perspective: 1000px;
-            cursor: pointer;
         }
+
+        .flashcard {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s, opacity 0.3s;
+            cursor: pointer;
+            display: none; /* Hidden by default, toggled by JS */
+        }
+
+        .flashcard.active { display: block; }
 
         .flashcard-inner {
             position: relative;
             width: 100%;
             height: 100%;
             text-align: center;
-            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             transform-style: preserve-3d;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-radius: 20px;
         }
 
-        .flashcard:hover .flashcard-inner {
-            transform: rotateY(180deg);
-        }
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
 
         .front, .back {
             position: absolute;
             width: 100%;
             height: 100%;
-            -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
-            border-radius: 15px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 30px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
-        .front {
-            background: linear-gradient(135deg, var(--primary), #1a73e8);
+        .front { background: white; border: 2px solid var(--primary); }
+        .back { background: white; transform: rotateY(180deg); border: 2px solid var(--secondary); text-align: left; overflow-y: auto; }
+
+        .category { font-size: 0.8rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+        h3 { margin: 0; color: #202124; font-size: 1.6rem; }
+        .hint { margin-top: 20px; font-size: 0.8rem; color: #70757a; font-style: italic; }
+
+        /* Content Styling */
+        .back h4 { color: var(--secondary); margin: 0 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .back p, .back li { font-size: 0.9rem; line-height: 1.4; color: #3c4043; margin-bottom: 8px; }
+
+        /* Controls */
+        .controls { margin-top: 30px; display: flex; gap: 20px; }
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            background: var(--primary);
             color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
         }
-
-        .back {
-            background: white;
-            color: var(--dark);
-            transform: rotateY(180deg);
-            border: 2px solid var(--primary);
-            text-align: left;
-            overflow-y: auto;
-        }
-
-        /* Category Badges */
-        .badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255,255,255,0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Typography */
-        h3 { margin: 10px 0; font-size: 1.4rem; }
-        p { font-size: 0.9rem; line-height: 1.5; margin: 5px 0; }
-        ul { padding-left: 20px; margin: 5px 0; }
-        li { font-size: 0.85rem; margin-bottom: 5px; }
-        strong { color: var(--primary); }
-
-        /* Color Coding by Category */
-        .card-security .front { background: linear-gradient(135deg, var(--danger), #c5221f); }
-        .card-security .back { border-color: var(--danger); }
-        .card-security .back strong { color: var(--danger); }
-
-        .card-infra .front { background: linear-gradient(135deg, var(--success), #188038); }
-        .card-infra .back { border-color: var(--success); }
-        .card-infra .back strong { color: var(--success); }
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
+        button.prev { background: #dadce0; color: #3c4043; }
     </style>
 </head>
 <body>
 
-    <h1>Cloud Computing Mastery Deck</h1>
+    <div class="deck-info">Card <span id="current-index">1</span> of 8</div>
 
-    <div class="deck-container">
-        
-        <div class="flashcard">
+    <div class="card-container" id="card-deck">
+        <div class="flashcard active">
             <div class="flashcard-inner">
                 <div class="front">
-                    <span class="badge">Fundamentals</span>
+                    <span class="category">Fundamentals</span>
                     <h3>5 NIST Characteristics</h3>
-                    <p>The "Definition" of Cloud</p>
+                    <p class="hint">Click to flip</p>
                 </div>
                 <div class="back">
+                    <h4>The Foundation</h4>
                     <ul>
-                        <li><strong>On-demand Self-service:</strong> Provisioning without human interaction with provider.</li>
-                        <li><strong>Broad Network Access:</strong> Available over the net via standard mechanisms (mobile, laptops).</li>
-                        <li><strong>Resource Pooling:</strong> Multi-tenant model; physical/virtual resources assigned dynamically.</li>
-                        <li><strong>Rapid Elasticity:</strong> Scaling in/out quickly to match demand.</li>
-                        <li><strong>Measured Service:</strong> Usage is monitored, controlled, and reported (Pay-per-use).</li>
+                        <li><strong>On-demand Self-service:</strong> Automatic provisioning without human interaction.</li>
+                        <li><strong>Broad Network Access:</strong> Standard mechanisms (mobile, web).</li>
+                        <li><strong>Resource Pooling:</strong> Multi-tenant physical/virtual resources.</li>
+                        <li><strong>Rapid Elasticity:</strong> Scaling instantly with demand.</li>
+                        <li><strong>Measured Service:</strong> Metered billing (Pay-as-you-go).</li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="flashcard card-infra">
+        <div class="flashcard">
             <div class="flashcard-inner">
                 <div class="front">
-                    <span class="badge">Architecture</span>
-                    <h3>SPI Model Details</h3>
-                    <p>SaaS, PaaS, IaaS</p>
+                    <span class="category">Architecture</span>
+                    <h3>The SPI Model</h3>
+                    <p class="hint">IaaS, PaaS, SaaS</p>
                 </div>
                 <div class="back">
-                    <p><strong>IaaS:</strong> You manage Guest OS, Middleware, Data, and Apps. Provider manages Hardware/Virtualization.</p>
-                    <p><strong>PaaS:</strong> You manage only Apps and Data. Provider manages the OS and Runtime environment.</p>
-                    <p><strong>SaaS:</strong> Provider manages everything. You simply use the interface (Browser/App).</p>
+                    <h4>Service Delivery</h4>
+                    <p><strong>IaaS:</strong> Infrastructure. You manage OS, Runtime, and Data. (e.g., Azure VMs).</p>
+                    <p><strong>PaaS:</strong> Platform. You manage only Apps and Data. Provider manages OS. (e.g., AWS Elastic Beanstalk).</p>
+                    <p><strong>SaaS:</strong> Software. Provider manages the whole stack. (e.g., Google Workspace).</p>
                 </div>
             </div>
         </div>
@@ -158,47 +143,139 @@
         <div class="flashcard">
             <div class="flashcard-inner">
                 <div class="front">
-                    <span class="badge">Tech</span>
-                    <h3>Hypervisors (VMM)</h3>
-                    <p>Type 1 vs Type 2</p>
+                    <span class="category">Deployment</span>
+                    <h3>Public vs Private vs Hybrid</h3>
+                    <p class="hint">Where is it hosted?</p>
                 </div>
                 <div class="back">
-                    <p><strong>Type 1 (Bare Metal):</strong> Runs directly on hardware. Highly efficient. Used in Data Centers. (e.g., Xen, KVM, ESXi).</p>
-                    <p><strong>Type 2 (Hosted):</strong> Runs on top of a Host OS. Used for dev/testing. (e.g., VMware Workstation, Oracle VirtualBox).</p>
+                    <h4>Cloud Environments</h4>
+                    <p><strong>Public:</strong> Multi-tenant, shared over internet. Cost-effective.</p>
+                    <p><strong>Private:</strong> Single-tenant, high security. On-premise or hosted.</p>
+                    <p><strong>Hybrid:</strong> Integration of Public + Private. Used for "Cloud Bursting" during peak loads.</p>
+                    <p><strong>Community:</strong> Shared by orgs with common goals (e.g., Government or Healthcare).</p>
                 </div>
             </div>
         </div>
 
-        <div class="flashcard card-security">
+        <div class="flashcard">
             <div class="flashcard-inner">
                 <div class="front">
-                    <span class="badge">Security</span>
+                    <span class="category">Technology</span>
+                    <h3>Hypervisors & Virtualization</h3>
+                    <p class="hint">The Engine of Cloud</p>
+                </div>
+                <div class="back">
+                    <h4>Virtualization Stack</h4>
+                    <p><strong>Hypervisor (VMM):</strong> Software that creates and runs VMs.</p>
+                    <p><strong>Type 1 (Bare Metal):</strong> Runs directly on hardware. Fast/Secure. (Xen, ESXi).</p>
+                    <p><strong>Type 2 (Hosted):</strong> Runs on a Host OS. Good for testing. (VirtualBox).</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flashcard">
+            <div class="flashcard-inner">
+                <div class="front">
+                    <span class="category">Finance</span>
+                    <h3>CapEx vs OpEx</h3>
+                    <p class="hint">Financial Shift</p>
+                </div>
+                <div class="back">
+                    <h4>Cloud Economics</h4>
+                    <p><strong>CapEx:</strong> Capital Expenditure. Upfront costs for hardware. Rigid.</p>
+                    <p><strong>OpEx:</strong> Operational Expenditure. Monthly bills based on use. Flexible.</p>
+                    <p><strong>TCO:</strong> Total Cost of Ownership. Includes cooling, power, and space costs saved by moving to Cloud.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flashcard">
+            <div class="flashcard-inner">
+                <div class="front">
+                    <span class="category">Security</span>
                     <h3>Shared Responsibility</h3>
-                    <p>The Boundary Line</p>
+                    <p class="hint">The Boundary Line</p>
                 </div>
                 <div class="back">
-                    <p><strong>Security OF the Cloud:</strong> Global infrastructure, Hardware, Software, Networking, and Facilities. (Provider's Job)</p>
-                    <p><strong>Security IN the Cloud:</strong> Client-side data, Identity & Access (IAM), OS configuration, Firewall rules. (User's Job)</p>
+                    <h4>Security Ownership</h4>
+                    <p><strong>Provider:</strong> Security OF the Cloud (Physical, Hardware, Global Infra).</p>
+                    <p><strong>Customer:</strong> Security IN the Cloud (Data, IAM, Patching Guest OS, Encryption).</p>
                 </div>
             </div>
         </div>
 
-        <div class="flashcard card-infra">
+        <div class="flashcard">
             <div class="flashcard-inner">
                 <div class="front">
-                    <span class="badge">Deployment</span>
-                    <h3>Cloud Types</h3>
-                    <p>Public, Private, Hybrid</p>
+                    <span class="category">Architecture</span>
+                    <h3>Horizontal vs Vertical Scaling</h3>
+                    <p class="hint">How to grow?</p>
                 </div>
                 <div class="back">
-                    <p><strong>Public:</strong> Resources owned by provider; shared by multiple orgs.</p>
-                    <p><strong>Private:</strong> Exclusive use by one org. Can be on-prem or off-prem.</p>
-                    <p><strong>Hybrid:</strong> Combines public/private; allows <em>Cloud Bursting</em> (moving load to public cloud during peaks).</p>
+                    <h4>Scalability Types</h4>
+                    <p><strong>Vertical (Scale Up):</strong> Adding more RAM/CPU to an existing server. Has a physical limit.</p>
+                    <p><strong>Horizontal (Scale Out):</strong> Adding more instances/servers. Infinite potential (Elasticity).</p>
                 </div>
             </div>
         </div>
 
+        <div class="flashcard">
+            <div class="flashcard-inner">
+                <div class="front">
+                    <span class="category">Availability</span>
+                    <h3>DR and Business Continuity</h3>
+                    <p class="hint">RTO and RPO</p>
+                </div>
+                <div class="back">
+                    <h4>Disaster Recovery</h4>
+                    <p><strong>RTO (Recovery Time Objective):</strong> Target time to restore service.</p>
+                    <p><strong>RPO (Recovery Point Objective):</strong> Maximum age of files that must be recovered (Data Loss Tolerance).</p>
+                    <p><strong>High Availability:</strong> Ensuring 99.9% (Three Nines) or more uptime.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <div class="controls">
+        <button class="prev" onclick="prevCard()">Previous</button>
+        <button class="next" onclick="nextCard()">Next</button>
+    </div>
+
+    <script>
+        const cards = document.querySelectorAll('.flashcard');
+        const currentIndexEl = document.getElementById('current-index');
+        let currentIndex = 0;
+
+        // Flip logic
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.toggle('flipped');
+            });
+        });
+
+        function updateDeck() {
+            cards.forEach((card, index) => {
+                card.classList.remove('active', 'flipped');
+                if (index === currentIndex) {
+                    card.classList.add('active');
+                }
+            });
+            currentIndexEl.innerText = currentIndex + 1;
+        }
+
+        function nextCard() {
+            if (currentIndex < cards.length - 1) {
+                currentIndex++;
+                updateDeck();
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateDeck();
+            }
+        }
+    </script>
 </body>
 </html>
